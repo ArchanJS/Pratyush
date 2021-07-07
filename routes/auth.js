@@ -45,7 +45,7 @@ router.post('/login', async (req, res) => {
     try {
         const { userID, password } = req.body;
         console.log("hi1");
-        if(!userID || !password){
+        if(!userID.trim() || !password.trim()){
             res.status(400).json({ error: "Please enter all the details!" });
         }
         else{

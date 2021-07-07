@@ -35,9 +35,6 @@ const userSchema=new mongoose.Schema({
     profilePicture:{
         type:String,
         default:"https://i.pinimg.com/originals/fd/14/a4/fd14a484f8e558209f0c2a94bc36b855.png"
-    },
-    description:{
-        type:String
     }
 },
     {timestamps:true}
