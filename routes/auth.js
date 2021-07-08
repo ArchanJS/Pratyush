@@ -1,5 +1,6 @@
 const express = require('express');
 const User = require('../models/user');
+const sendEmail=require('../utils/sendEmail');
 
 const router = express();
 
@@ -63,6 +64,11 @@ router.post('/login', async (req, res) => {
                 else{
                     console.log("hi4");
                     const token = await user.generateToken();
+                    sendEmail({
+                        user:user.email,
+                        subject:"Login",
+                        html:`<h1>Login successful</h1><br><h4>Welcome to our website ${user.name}.</h4>`
+                    })
                     res.status(201).send(token);
                     console.log(user);
                 }
