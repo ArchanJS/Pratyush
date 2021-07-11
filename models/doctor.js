@@ -3,7 +3,7 @@ const bcryptjs=require('bcryptjs');
 const validator=require('validator');
 const jwt=require('jsonwebtoken');
 
-const userSchema=new mongoose.Schema({
+const doctorSchema=new mongoose.Schema({
     name:{
         type:String,
         required:true
@@ -12,10 +12,6 @@ const userSchema=new mongoose.Schema({
         type:String,
         required:true,
         unique:true
-    },
-    verified:{
-        type:Boolean,
-        default:false
     },
     email:{
         type:String,
@@ -31,6 +27,15 @@ const userSchema=new mongoose.Schema({
         type:String,
         required:true,
         unique:true
+    },
+    registrationNo:{
+        type:String,
+        required:true,
+        unique:true
+    },
+    verified:{
+        type:Boolean,
+        default:false
     },
     password:{
         type:String,
@@ -72,6 +77,6 @@ userSchema.methods.generateToken=async function(){
     }
 }
 
-const User= mongoose.model("users",userSchema);
+const Doctor= mongoose.model("doctor",userSchema);
 
-module.exports=User;
+module.exports=Doctor;

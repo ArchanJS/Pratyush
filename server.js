@@ -13,8 +13,8 @@ app.use(bodyParser.urlencoded({limit:"50mb",extended:true}));
 app.use(helmet());
 app.use(morgan("common"));
 
-app.use('/api/auth',require('./routes/auth'));
-app.use('/api/private',require('./routes/private'));
+app.use('/api/user/auth',require('./routes/authUser'));
+app.use('/api/user/private',require('./routes/privateUser'));
 
 app.listen(port,()=>{
     console.log(`Server is running at http://localhost:${port}`);
