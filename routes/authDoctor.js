@@ -1,5 +1,5 @@
 const express = require('express');
-const User = require('../models/user');
+const Doctor = require('../models/doctor');
 const sendEmail=require('../utils/sendEmail');
 const jwt=require('jsonwebtoken');
 const bcryptjs=require('bcryptjs');
@@ -12,35 +12,35 @@ router.get('/', (req, res) => {
 
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, phone, password } = req.body;
-        if (name.trim() != "" || email.trim() != "" || phone.trim() != "" || password.trim() != "") {
+        const { name, email, phone,  registrationNo, specialization, password } = req.body;
+        if (name.trim() != "" || email.trim() != "" || phone.trim() != "" || password.trim() != "" || registrationNo.trim() != "" || specialization.trim() != "") {
             const characters ="abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            let userID = "u";
+            let doctorID = "d";
             const charactersLength = characters.length;
 
             while (true) {
                 for (var i = 0; i < 5; i++) {
-                    userID += characters.charAt(Math.floor(Math.random() * charactersLength));
+                    doctorID += characters.charAt(Math.floor(Math.random() * charactersLength));
                 }
 
-                let checkUser = await User.findOne({ userID });
-                if (checkUser != null) {
-                    userID = "u";
+                let checkDoctor = await Doctor.findOne({ doctorID });
+                if (checkDoctor != null) {
+                    doctorID = "d";
                     continue;
                 } else {
                     break;
                 }
             }
 
-            const user = new User({ name, userID, email, phone, password });
-            await user.save();
-            const token = await user.generateToken();
+            const doctor = new Doctor({ name, doctorID, email, phone, registrationNo, specialization, password });
+            await doctor.save();
+            const token = await doctor.generateToken();
             sendEmail({
-                user:user.email,
+                user:doctor.email,
                 subject:"Verify email",
-                html:`<h1>Registration successful</h1><br><h4>Welcome to our website ${user.name}. Click on the following button to verify your email.</h4><br><a href="http://localhost:3000/verifyemail/${token}" target="_blank"><button style="color: white;background: purple;cursor: pointer;">Click here to verify email</button></a>`
+                html:`<h1>Registration successful</h1><br><h4>Welcome to our website Dr. ${doctor.name}. Click on the following button to verify your email.</h4><br><a href="http://localhost:3000/verifyemail/${token}" target="_blank"><button style="color: white;background: purple;cursor: pointer;">Click here to verify email</button></a>`
             })
-            res.status(201).json({ message: "User created!" });
+            res.status(201).json({ message: "Doctor created!" });
         }
         else {
             res.status(400).json({ error: "Please enter all the details!" });
@@ -58,22 +58,22 @@ router.post('/login', async (req, res) => {
             res.status(400).json({ error: "Please enter all the details!" });
         }
         else{
-            const user=await User.findOne({email});
+            const doctor=await Doctor.findOne({email});
             console.log("hi2");
-            if(!user){
-                res.status(400).json({ error: "User not found!" });
+            if(!doctor){
+                res.status(400).json({ error: "Doctor not found!" });
             }
             else{
-                const checkPass=await user.comparePasswords(password);
+                const checkPass=await doctor.comparePasswords(password);
                 console.log("hi3");
                 if(!checkPass){
                     res.status(400).json({error:"Invalid credentials!1"});
                 }
                 else{
                     console.log("hi4");
-                    const token = await user.generateToken();
+                    const token = await doctor.generateToken();
                     res.status(201).send(token);
-                    console.log(user);
+                    console.log(doctor);
                 }
             }
         }
@@ -88,14 +88,14 @@ router.get('/verify/:token',async(req,res)=>{
         const token=req.params.token;
         console.log("hi1");
         const verifiedToken=await jwt.verify(token,process.env.SECRET_KEY);
-        const user= await User.findOne({_id:verifiedToken._id});
-        if(!user){
+        const doctor= await Doctor.findOne({_id:verifiedToken._id});
+        if(!doctor){
             res.status(401).json({error:"User doesn't exist!"});
         }
         else{
-            let userID=user.userID;
+            let doctorID=doctor.doctorID;
             let verified=true;
-            await User.updateOne({userID},{
+            await Doctor.updateOne({doctorID},{
                 $set:{
                     verified
                 }
@@ -110,11 +110,11 @@ router.get('/verify/:token',async(req,res)=>{
 router.post('/forgotpassword',async(req,res)=>{
     try {
         const {email}=req.body;
-        const user=await User.findOne({email});
-        const token = await user.generateToken();
+        const doctor=await Doctor.findOne({email});
+        const token = await doctor.generateToken();
         sendEmail({
-            user:user.email,
-            subject:"Reset password",
+            user:doctor.email,
+            subject:"Reset pasword",
             html:`<h1>Reset password</h1><br><h4>Click on the following button to reset your password.</h4><br><a href="http://localhost:3000/resetpassword/${token}" target="_blank"><button style="color: white;background: purple;cursor: pointer;">Reset password.</button></a>`
         })
         res.status(200).json({message:"Mail sent!"});
@@ -131,13 +131,13 @@ router.post('/resetpassword/:token',async(req,res)=>{
         password = await bcryptjs.hash(password,10);
         console.log("hi1");
         const verifiedToken=await jwt.verify(token,process.env.SECRET_KEY);
-        const user= await User.findOne({_id:verifiedToken._id});
-        if(!user){
-            res.status(401).json({error:"User doesn't exist!"});
+        const doctor= await Doctor.findOne({_id:verifiedToken._id});
+        if(!doctor){
+            res.status(401).json({error:"Doctor doesn't exist!"});
         }
         else{
-            let userID=user.userID;
-            await User.updateOne({userID},{
+            let doctorID=doctor.doctorID;
+            await Doctor.updateOne({doctorID},{
                 $set:{
                     password
                 }

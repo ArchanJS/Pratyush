@@ -1,14 +1,14 @@
 const express=require('express');
-const authenticate=require('../middlewares/auth');
+const authenticateUser=require('../middlewares/authUser');
 const User=require('../models/user');
 
 const router=express.Router();
 
-router.get('/',authenticate,(req,res)=>{
-    res.status(201).json({message:"Welcome to private home page!"});
+router.get('/',authenticateUser,(req,res)=>{
+    res.status(201).json(req.user);
 })
 
-router.patch('/update/:userID',authenticate,async(req,res)=>{
+router.patch('/update/:userID',authenticateUser,async(req,res)=>{
     try {
         const userID=req.params.userID;
         const{name,email,phone,profilePicture}=req.body;
@@ -31,6 +31,17 @@ router.patch('/update/:userID',authenticate,async(req,res)=>{
         }
     } catch (error) {
         res.status(400).json({error:"Can't update!"})
+    }
+})
+
+router.delete('/delete/:userID',authenticateUser, async(req,res)=>{
+    try {
+        const userID=req.params.userID;
+        await User.findOneAndDelete({userID});
+        res.status(200).json({message:"User deleted!"});
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({error:"Can't delete user!"});
     }
 })
 

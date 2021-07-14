@@ -8,7 +8,7 @@ const doctorSchema=new mongoose.Schema({
         type:String,
         required:true
     },
-    userID:{
+    doctorID:{
         type:String,
         required:true,
         unique:true
@@ -33,6 +33,10 @@ const doctorSchema=new mongoose.Schema({
         required:true,
         unique:true
     },
+    specialization:{
+        type:String,
+        required:true
+    },
     verified:{
         type:Boolean,
         default:false
@@ -49,7 +53,7 @@ const doctorSchema=new mongoose.Schema({
     {timestamps:true}
 )
 
-userSchema.pre("save",async function(next){
+doctorSchema.pre("save",async function(next){
     try {
         if(this.isModified("password")){
             this.password = await bcryptjs.hash(this.password,10);
@@ -60,7 +64,7 @@ userSchema.pre("save",async function(next){
     }
 })
 
-userSchema.methods.comparePasswords=async function(password){
+doctorSchema.methods.comparePasswords=async function(password){
     try {
         return await bcryptjs.compare(password,this.password);
     } catch (error) {
@@ -68,7 +72,7 @@ userSchema.methods.comparePasswords=async function(password){
     }
 }
 
-userSchema.methods.generateToken=async function(){
+doctorSchema.methods.generateToken=async function(){
     try {
         const token=await jwt.sign({_id:this._id},process.env.SECRET_KEY,{expiresIn:process.env.EXPIRES});
         return token;
@@ -77,6 +81,6 @@ userSchema.methods.generateToken=async function(){
     }
 }
 
-const Doctor= mongoose.model("doctor",userSchema);
+const Doctor= mongoose.model("doctors",doctorSchema);
 
 module.exports=Doctor;
