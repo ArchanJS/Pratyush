@@ -3,7 +3,7 @@ const bcryptjs=require('bcryptjs');
 const validator=require('validator');
 const jwt=require('jsonwebtoken');
 
-const userSchema=new mongoose.Schema({
+const patientSchema=new mongoose.Schema({
     name:{
         type:String,
         required:true
@@ -44,7 +44,7 @@ const userSchema=new mongoose.Schema({
     {timestamps:true}
 )
 
-userSchema.pre("save",async function(next){
+patientSchema.pre("save",async function(next){
     try {
         if(this.isModified("password")){
             this.password = await bcryptjs.hash(this.password,10);
@@ -55,7 +55,7 @@ userSchema.pre("save",async function(next){
     }
 })
 
-userSchema.methods.comparePasswords=async function(password){
+patientSchema.methods.comparePasswords=async function(password){
     try {
         return await bcryptjs.compare(password,this.password);
     } catch (error) {
@@ -63,7 +63,7 @@ userSchema.methods.comparePasswords=async function(password){
     }
 }
 
-userSchema.methods.generateToken=async function(){
+patientSchema.methods.generateToken=async function(){
     try {
         const token=await jwt.sign({_id:this._id},process.env.SECRET_KEY,{expiresIn:process.env.EXPIRES});
         return token;
@@ -72,6 +72,6 @@ userSchema.methods.generateToken=async function(){
     }
 }
 
-const User= mongoose.model("users",userSchema);
+const Patient= mongoose.model("patients",patientSchema);
 
-module.exports=User;
+module.exports=Patient;

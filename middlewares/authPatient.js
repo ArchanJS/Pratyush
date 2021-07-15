@@ -1,7 +1,7 @@
-const User=require('../models/user');
+const Patient=require('../models/patient');
 const jwt=require('jsonwebtoken');
 
-const authenticateUser=async(req,res,next)=>{
+const authenticatePatient=async(req,res,next)=>{
     try {
         let token;
         console.log("h1");
@@ -11,25 +11,25 @@ const authenticateUser=async(req,res,next)=>{
         console.log("h2");
         console.log(req.headers.authorization);
         if(!token){
-            res.status(401).json({error:"User unauthorized1"});
+            res.status(401).json({error:"Patient unauthorized1"});
         }
         console.log("h3");
         console.log(token);
         const verifiedToken=await jwt.verify(token,process.env.SECRET_KEY);
         console.log("h4");
-        const user= await User.findOne({_id:verifiedToken._id});
+        const patient= await Patient.findOne({_id:verifiedToken._id});
         console.log("h5");
-        if(!user){
-            res.status(401).json({error:"User unauthorized2"});
+        if(!patient){
+            res.status(401).json({error:"Patient unauthorized2"});
         }
         console.log("h6");
-        req.user=user;
+        req.patient=patient;
         next();
     } catch (error) {
-        res.status(401).json({error:"User unauthorized3"});
+        res.status(401).json({error:"Patient unauthorized3"});
         next();
     }
 }
 
 
-module.exports=authenticateUser;
+module.exports=authenticatePatient;

@@ -1,5 +1,5 @@
 const express = require('express');
-const User = require('../models/user');
+const Patient = require('../models/patient');
 const sendEmail=require('../utils/sendEmail');
 const jwt=require('jsonwebtoken');
 const bcryptjs=require('bcryptjs');
@@ -23,8 +23,8 @@ router.post('/register', async (req, res) => {
                     userID += characters.charAt(Math.floor(Math.random() * charactersLength));
                 }
 
-                let checkUser = await User.findOne({ userID });
-                if (checkUser != null) {
+                let checkPatient = await Patient.findOne({ userID });
+                if (checkPatient != null) {
                     userID = "u";
                     continue;
                 } else {
@@ -32,13 +32,13 @@ router.post('/register', async (req, res) => {
                 }
             }
 
-            const user = new User({ name, userID, email, phone, password });
-            await user.save();
-            const token = await user.generateToken();
+            const patient = new Patient({ name, userID, email, phone, password });
+            await patient.save();
+            const token = await patient.generateToken();
             sendEmail({
-                user:user.email,
+                user:patient.email,
                 subject:"Verify email",
-                html:`<h1>Registration successful</h1><br><h4>Welcome to our website ${user.name}. Click on the following button to verify your email.</h4><br><a href="http://localhost:3000/verifyemail/${token}" target="_blank"><button style="color: white;background: purple;cursor: pointer;">Click here to verify email</button></a>`
+                html:`<h1>Registration successful</h1><br><h4>Welcome to our website ${patient.name}. Click on the following button to verify your email.</h4><br><a href="http://localhost:3000/verifyemail/${token}" target="_blank"><button style="color: white;background: purple;cursor: pointer;">Click here to verify email</button></a>`
             })
             res.status(201).json({ message: "User created!" });
         }
@@ -58,22 +58,22 @@ router.post('/login', async (req, res) => {
             res.status(400).json({ error: "Please enter all the details!" });
         }
         else{
-            const user=await User.findOne({email});
+            const patient=await Patient.findOne({email});
             console.log("hi2");
-            if(!user){
+            if(!patient){
                 res.status(400).json({ error: "User not found!" });
             }
             else{
-                const checkPass=await user.comparePasswords(password);
+                const checkPass=await patient.comparePasswords(password);
                 console.log("hi3");
                 if(!checkPass){
                     res.status(400).json({error:"Invalid credentials!1"});
                 }
                 else{
                     console.log("hi4");
-                    const token = await user.generateToken();
+                    const token = await patient.generateToken();
                     res.status(201).send(token);
-                    console.log(user);
+                    console.log(patient);
                 }
             }
         }
@@ -88,14 +88,14 @@ router.get('/verify/:token',async(req,res)=>{
         const token=req.params.token;
         console.log("hi1");
         const verifiedToken=await jwt.verify(token,process.env.SECRET_KEY);
-        const user= await User.findOne({_id:verifiedToken._id});
-        if(!user){
+        const patient= await Patient.findOne({_id:verifiedToken._id});
+        if(!patient){
             res.status(401).json({error:"User doesn't exist!"});
         }
         else{
-            let userID=user.userID;
+            let userID=patient.userID;
             let verified=true;
-            await User.updateOne({userID},{
+            await Patient.updateOne({userID},{
                 $set:{
                     verified
                 }
@@ -110,10 +110,10 @@ router.get('/verify/:token',async(req,res)=>{
 router.post('/forgotpassword',async(req,res)=>{
     try {
         const {email}=req.body;
-        const user=await User.findOne({email});
-        const token = await user.generateToken();
+        const patient=await Patient.findOne({email});
+        const token = await patient.generateToken();
         sendEmail({
-            user:user.email,
+            user:patient.email,
             subject:"Reset password",
             html:`<h1>Reset password</h1><br><h4>Click on the following button to reset your password.</h4><br><a href="http://localhost:3000/resetpassword/${token}" target="_blank"><button style="color: white;background: purple;cursor: pointer;">Reset password.</button></a>`
         })
@@ -131,13 +131,13 @@ router.post('/resetpassword/:token',async(req,res)=>{
         password = await bcryptjs.hash(password,10);
         console.log("hi1");
         const verifiedToken=await jwt.verify(token,process.env.SECRET_KEY);
-        const user= await User.findOne({_id:verifiedToken._id});
-        if(!user){
+        const patient= await Patient.findOne({_id:verifiedToken._id});
+        if(!patient){
             res.status(401).json({error:"User doesn't exist!"});
         }
         else{
-            let userID=user.userID;
-            await User.updateOne({userID},{
+            let userID=patient.userID;
+            await Patient.updateOne({userID},{
                 $set:{
                     password
                 }

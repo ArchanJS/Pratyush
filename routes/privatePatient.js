@@ -1,19 +1,19 @@
 const express=require('express');
-const authenticateUser=require('../middlewares/authUser');
-const User=require('../models/user');
+const authenticatePatient=require('../middlewares/authPatient');
+const Patient=require('../models/patient');
 
 const router=express.Router();
 
-router.get('/',authenticateUser,(req,res)=>{
-    res.status(201).json(req.user);
+router.get('/',authenticatePatient,(req,res)=>{
+    res.status(201).json(req.patient);
 })
 
-router.patch('/update/:userID',authenticateUser,async(req,res)=>{
+router.patch('/update/:userID',authenticatePatient,async(req,res)=>{
     try {
         const userID=req.params.userID;
         const{name,email,phone,profilePicture}=req.body;
-        const user=await User.findOne({userID});
-        if(!user){
+        const patient=await Patient.findOne({userID});
+        if(!patient){
             res.status(400).json({error:"User doesn't exist!"});
         }
         else{
@@ -21,7 +21,7 @@ router.patch('/update/:userID',authenticateUser,async(req,res)=>{
                 res.status(400).json({error:"Don't leave any field empty!"});
             }
             else{
-                await User.updateOne({userID},{
+                await Patient.updateOne({userID},{
                     $set:{
                         name,email,phone,profilePicture
                     }
@@ -34,10 +34,10 @@ router.patch('/update/:userID',authenticateUser,async(req,res)=>{
     }
 })
 
-router.delete('/delete/:userID',authenticateUser, async(req,res)=>{
+router.delete('/delete/:userID',authenticatePatient, async(req,res)=>{
     try {
         const userID=req.params.userID;
-        await User.findOneAndDelete({userID});
+        await Patient.findOneAndDelete({userID});
         res.status(200).json({message:"User deleted!"});
     } catch (error) {
         console.log(error);
