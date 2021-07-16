@@ -63,6 +63,9 @@ router.post('/login', async (req, res) => {
             if(!patient){
                 res.status(400).json({ error: "User not found!" });
             }
+            else if(patient.verified==false){
+                res.status(401).json({error:"User is not verified!"});
+            }
             else{
                 const checkPass=await patient.comparePasswords(password);
                 console.log("hi3");
@@ -115,7 +118,7 @@ router.post('/forgotpassword',async(req,res)=>{
         sendEmail({
             user:patient.email,
             subject:"Reset password",
-            html:`<h1>Reset password</h1><br><h4>Click on the following button to reset your password.</h4><br><a href="http://localhost:3000/resetpassword/${token}" target="_blank"><button style="color: white;background: purple;cursor: pointer;">Reset password.</button></a>`
+            html:`<h1>Reset password</h1><br><h4>Click on the following button to reset your password.</h4><br><a href="http://localhost:3000/resetpassword/${token}" target="_blank"><button style="color: white;background: purple;cursor: pointer;">Reset password</button></a>`
         })
         res.status(200).json({message:"Mail sent!"});
     } catch (error) {

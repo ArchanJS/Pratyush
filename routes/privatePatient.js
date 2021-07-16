@@ -1,6 +1,7 @@
 const express=require('express');
 const authenticatePatient=require('../middlewares/authPatient');
 const Patient=require('../models/patient');
+const bcryptjs=require('bcryptjs');
 
 const router=express.Router();
 
@@ -31,6 +32,28 @@ router.patch('/update/:userID',authenticatePatient,async(req,res)=>{
         }
     } catch (error) {
         res.status(400).json({error:"Can't update!"})
+    }
+})
+
+router.patch('/updatepassword/:userID',authenticatePatient,async(req,res)=>{
+    try {
+        const userID=req.params.userID;
+        let {password}=req.body;
+        const patient= await Patient.findOne({userID});
+        if(!patient){
+            res.status(400).json({error:"User doesn't exist!"});
+        }
+        else{
+            password=await bcryptjs.hash(password,10);
+            await Patient.updateOne({userID},{
+                $set:{
+                    password
+                }
+            })
+            res.status(201).json({message:"Password updated!"});
+        }
+    } catch (error) {
+        res.status(400).json({error:"Can't update password!"});
     }
 })
 

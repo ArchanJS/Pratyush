@@ -15,24 +15,24 @@ router.post('/register', async (req, res) => {
         const { name, email, phone,  registrationNo, specialization, password } = req.body;
         if (name.trim() != "" || email.trim() != "" || phone.trim() != "" || password.trim() != "" || registrationNo.trim() != "" || specialization.trim() != "") {
             const characters ="abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            let doctorID = "d";
+            let userID = "d";
             const charactersLength = characters.length;
 
             while (true) {
                 for (var i = 0; i < 5; i++) {
-                    doctorID += characters.charAt(Math.floor(Math.random() * charactersLength));
+                    userID += characters.charAt(Math.floor(Math.random() * charactersLength));
                 }
 
-                let checkDoctor = await Doctor.findOne({ doctorID });
+                let checkDoctor = await Doctor.findOne({ userID });
                 if (checkDoctor != null) {
-                    doctorID = "d";
+                    userID = "d";
                     continue;
                 } else {
                     break;
                 }
             }
 
-            const doctor = new Doctor({ name, doctorID, email, phone, registrationNo, specialization, password });
+            const doctor = new Doctor({ name, userID, email, phone, registrationNo, specialization, password });
             await doctor.save();
             const token = await doctor.generateToken();
             sendEmail({
@@ -40,7 +40,7 @@ router.post('/register', async (req, res) => {
                 subject:"Verify email",
                 html:`<h1>Registration successful</h1><br><h4>Welcome to our website Dr. ${doctor.name}. Click on the following button to verify your email.</h4><br><a href="http://localhost:3000/verifyemail/${token}" target="_blank"><button style="color: white;background: purple;cursor: pointer;">Click here to verify email</button></a>`
             })
-            res.status(201).json({ message: "Doctor created!" });
+            res.status(201).json({ message: "User created!" });
         }
         else {
             res.status(400).json({ error: "Please enter all the details!" });
@@ -61,7 +61,10 @@ router.post('/login', async (req, res) => {
             const doctor=await Doctor.findOne({email});
             console.log("hi2");
             if(!doctor){
-                res.status(400).json({ error: "Doctor not found!" });
+                res.status(400).json({ error: "User not found!" });
+            }
+            else if(doctor.verified==false){
+                res.status(401).json({error:"User is not verified!"});
             }
             else{
                 const checkPass=await doctor.comparePasswords(password);
@@ -93,9 +96,9 @@ router.get('/verify/:token',async(req,res)=>{
             res.status(401).json({error:"User doesn't exist!"});
         }
         else{
-            let doctorID=doctor.doctorID;
+            let userID=doctor.userID;
             let verified=true;
-            await Doctor.updateOne({doctorID},{
+            await Doctor.updateOne({userID},{
                 $set:{
                     verified
                 }
@@ -115,7 +118,7 @@ router.post('/forgotpassword',async(req,res)=>{
         sendEmail({
             user:doctor.email,
             subject:"Reset pasword",
-            html:`<h1>Reset password</h1><br><h4>Click on the following button to reset your password.</h4><br><a href="http://localhost:3000/resetpassword/${token}" target="_blank"><button style="color: white;background: purple;cursor: pointer;">Reset password.</button></a>`
+            html:`<h1>Reset password</h1><br><h4>Click on the following button to reset your password.</h4><br><a href="http://localhost:3000/resetpassword/${token}" target="_blank"><button style="color: white;background: purple;cursor: pointer;">Reset password</button></a>`
         })
         res.status(200).json({message:"Mail sent!"});
     } catch (error) {
@@ -133,11 +136,11 @@ router.post('/resetpassword/:token',async(req,res)=>{
         const verifiedToken=await jwt.verify(token,process.env.SECRET_KEY);
         const doctor= await Doctor.findOne({_id:verifiedToken._id});
         if(!doctor){
-            res.status(401).json({error:"Doctor doesn't exist!"});
+            res.status(401).json({error:"User doesn't exist!"});
         }
         else{
-            let doctorID=doctor.doctorID;
-            await Doctor.updateOne({doctorID},{
+            let userID=doctor.userID;
+            await Doctor.updateOne({userID},{
                 $set:{
                     password
                 }
